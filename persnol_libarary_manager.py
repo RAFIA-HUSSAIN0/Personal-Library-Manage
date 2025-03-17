@@ -7,8 +7,9 @@ LIBRARY_FILE = "library.json"
 def load_library():
     try:
         with open(LIBRARY_FILE, "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
+            content = file.read().strip()
+            return json.loads(content) if content else []
+    except (FileNotFoundError, json.JSONDecodeError):
         return []
 
 def save_library(library):
@@ -44,12 +45,15 @@ if choice == "Add a Book":
 
 elif choice == "Remove a Book":
     st.subheader("Remove a Book")
-    titles = [book["title"] for book in library]
-    selected_title = st.selectbox("Select a book to remove", titles)
-    if st.button("Remove Book"):
-        library = [book for book in library if book["title"] != selected_title]
-        save_library(library)
-        st.success(f"'{selected_title}' has been removed from your library!")
+    if library:
+        titles = [book["title"] for book in library]
+        selected_title = st.selectbox("Select a book to remove", titles)
+        if st.button("Remove Book"):
+            library = [book for book in library if book["title"] != selected_title]
+            save_library(library)
+            st.success(f"'{selected_title}' has been removed from your library!")
+    else:
+        st.warning("Your library is empty.")
 
 elif choice == "Search for a Book":
     st.subheader("Search for a Book")
@@ -60,7 +64,7 @@ elif choice == "Search for a Book":
         results = [book for book in library if search_query.lower() in book[search_option.lower()].lower()]
         if results:
             for book in results:
-                st.write(f"{book['title']} by {book['author']} ({book['year']}) - {book['genre']} - {'Read' if book['read'] else 'Unread'}")
+                st.write(f"📖 {book['title']} by {book['author']} ({book['year']}) - {book['genre']} - {'✅ Read' if book['read'] else '❌ Unread'}")
         else:
             st.warning("No books found.")
 
